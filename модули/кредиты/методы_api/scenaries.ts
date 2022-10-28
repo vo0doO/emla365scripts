@@ -1,21 +1,18 @@
-async function testWebHookFetch( url: string ) {
-}
-
 async function testWebHook( req: FetchRequest ): Promise<void> {
     const input = JSON.parse( req.body as string )
     await Log( "Start testWebHook API with URL: ", input.url )
-    await Log( "Complete FETCH REQUEST to URL: ", input.url )
-    const request = await fetch( input.url, {
+    // await Log("Complete FETCH REQUEST to URL: ", input.url)
+    await fetch( input.url, {
         method: "POST",
         body: JSON.stringify( {
             result: "Bee OK !"
         } )
     } )
-    await Log( "Test WEB HOOK REQUEST WITH URL: ", request.url )
+
+    // request.then((resp)=>{Log("Test WEB HOOK REQUEST WITH URL: ", resp)})
+    await Log( "Test WEB HOOK REQUEST WITH URL complete: ", input.url )
+
 }
-
-
-
 
 
 class TCreditRequest {
@@ -136,12 +133,14 @@ async function callwebhook( req: FetchRequest ): Promise<HttpResponse | void> {
             throw new Error( "Calc Error: value is NaN" )
         }
         input.payment = new Money( payment, "RUB" )
-        await fetch( input.url!, {
+        const request = fetch( input.url!, {
             method: "POST",
             body: JSON.stringify(
                 input
             )
         } )
+
+        request.then( ( response ) => { Log( "Call web hook complete with response: ", response ) } )
     }
     catch ( e ) {
         await Log( "Calc WEBHOOK Ошибка при расчетах ! Проверьте данные", e.message )
