@@ -1,3 +1,23 @@
+async function testWebHookFetch( url: string ) {
+}
+
+async function testWebHook( req: FetchRequest ): Promise<void> {
+    const input = JSON.parse( req.body as string )
+    await Log( "Start testWebHook API with URL: ", input.url )
+    await Log( "Complete FETCH REQUEST to URL: ", input.url )
+    const request = await fetch( input.url, {
+        method: "POST",
+        body: JSON.stringify( {
+            result: "Bee OK !"
+        } )
+    } )
+    await Log( "Test WEB HOOK REQUEST WITH URL: ", request.url )
+}
+
+
+
+
+
 class TCreditRequest {
     amount: number
     percent: number
@@ -25,8 +45,7 @@ async function Log( title: string, obj: any ): Promise<void> {
 
     logs.push( {
         title,
-        data: obj,
-        createdAt: new Date()
+        data: obj
     } )
 
     await Namespace.storage.setItem( 'logs', JSON.stringify( logs ) )
@@ -117,10 +136,12 @@ async function callwebhook( req: FetchRequest ): Promise<HttpResponse | void> {
             throw new Error( "Calc Error: value is NaN" )
         }
         input.payment = new Money( payment, "RUB" )
-        await Log( 'response for webhook', input )
-        const res = new HttpResponse( HttpStatusCode.OK )
-        res.json( input )
-        return res
+        await fetch( input.url!, {
+            method: "POST",
+            body: JSON.stringify(
+                input
+            )
+        } )
     }
     catch ( e ) {
         await Log( "Calc WEBHOOK Ошибка при расчетах ! Проверьте данные", e.message )
