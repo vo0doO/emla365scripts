@@ -1,29 +1,25 @@
-const Context = {
-    data: {
-        payment: 1000,
-        url: "https://google.com"
-    }
-}
+/**
+Для модели обратного вызова:
+    async function action(url: string): Promise<void>;
+    async function callback(req: HTTPRequest): Promise<void>;
 
+**/
 
-async function Log( title: string, obj: any ) {
+async function Log( title: string, obj: any ): Promise<void> {
     if ( !Namespace.params.data.enable_logs ) {
-        return
+        return;
     }
 
     const str = await Namespace.storage.getItem( 'logs' );
-    const logs: any[] = []; JSON.parse( str! );
+    const logs: any[] = JSON.parse( str! );
 
     logs.push( {
         title,
-        data: obj,
-        createdAt: new Date(),
+        data: obj
     } )
 
-    await Namespace.storage.setItem( "logs", JSON.stringify( logs ) )
+    await Namespace.storage.setItem( 'logs', JSON.stringify( logs ) )
 }
-
-const baseurl = "https://cp6yx7s6ah6fa.elma365.ru/api/extensions/8757ef9a-5c51-445d-8067-59d5d9f4b482/script/callwebhook"
 
 
 class TPayment {
@@ -35,7 +31,7 @@ class TPayment {
 
 async function action( url: string ): Promise<HttpResponse | void> {
     await Log( 'Action START: ', Context.data )
-    await Log( 'Action url: ', url )
+    await Log( 'Action webhook url: ', url )
     const res = await fetch( Context.data.url!,
         {
             method: "POST",
@@ -43,30 +39,13 @@ async function action( url: string ): Promise<HttpResponse | void> {
                 {
                     amount: 30000,
                     percent: 20,
-                    period: 24
+                    period: 24,
+                    url
                 } )
         }
     )
-
-    if ( res.ok ) {
-        await Log( "Calwebhook RES OK", res )
-        const data = await res.json()
-        Context.data.payment = data.payment
-        Log( 'Action FINISH: ', Context.data )
-        let nres = new HttpResponse( HttpStatusCode.OK )
-        nres.content( "blabla" )
-        return nres
-    }
-    else {
-        Log( 'Action ERROR: ', JSON.stringify(
-            {
-                amount: 30000,
-                percent: 20,
-                period: 24
-            } ) )
-    }
 }
-// НЕ СТАРТУЕТ CALLBACK
+
 async function callback( req: FetchRequest ): Promise<void> {
     Log( "Callback START with request: ", req )
     if ( !req.body ) {
@@ -78,5 +57,8 @@ async function callback( req: FetchRequest ): Promise<void> {
     if ( result ) {
         Log( "Callback RETURN", result )
     }
-    Context.data.payment = new Money( result.payment.cents, "RUB" )
+
+    let centsArraya = `${ result.payment.cents }`.split( "" )
+    centsArraya.splice( centsArraya.length - 1, 0, "." )
+    Context.data.payment = new Money( parseFloat( centsArraya.join( "" ) ), "RUB" )
 }
