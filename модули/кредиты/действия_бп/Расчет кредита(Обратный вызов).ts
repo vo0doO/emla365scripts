@@ -37,9 +37,9 @@ async function action( url: string ): Promise<HttpResponse | void> {
             method: "POST",
             body: JSON.stringify(
                 {
-                    amount: 30000,
-                    percent: 20,
-                    period: 24,
+                    amount: Context.data.amount,
+                    percent: Context.data.percent,
+                    period: Context.data.period,
                     url
                 } )
         }
@@ -59,6 +59,6 @@ async function callback( req: FetchRequest ): Promise<void> {
     }
 
     let centsArraya = `${ result.payment.cents }`.split( "" )
-    centsArraya.splice( centsArraya.length - 1, 0, "." )
+    centsArraya.splice( centsArraya.length - 2, 0, "." )
     Context.data.payment = new Money( parseFloat( centsArraya.join( "" ) ), "RUB" )
 }
